@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OTP Verification</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap");
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f8ff;
+        margin: 0;
+        padding: 0;
+      }
+      .email-container {
+        max-width: 600px;
+        margin: 20px auto;
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid #dce8f0;
+      }
+      .header {
+        background: #1e90ff;
+        text-align: center;
+        color: #ffffff;
+        padding: 20px;
+      }
+      .header img {
+        max-width: 100px;
+        margin: 0 auto;
+        display: block;
+      }
+      .header h1 {
+        font-family: "Caveat", cursive, serif;
+        margin: 10px 0 0 0;
+        font-size: 40px;
+        font-weight: 600;
+      }
+      .content {
+        padding: 20px;
+        color: #333333;
+        text-align: center;
+      }
+      .content p {
+        margin: 16px 0;
+        line-height: 1.6;
+      }
+      .otp-code {
+        font-size: 26px;
+        font-weight: bold;
+        background: #e6f7ff;
+        padding: 15px 25px;
+        letter-spacing: 8px;
+        display: inline-block;
+        border-radius: 5px;
+        color: #1e90ff;
+        margin: 20px 0;
+        border: 1px solid #b3d9ff;
+      }
+      .footer {
+        background: #f7faff;
+        padding: 15px 20px;
+        text-align: center;
+        font-size: 14px;
+        color: #555555;
+        border-top: 1px solid #dce8f0;
+      }
+      .footer a {
+        color: #1e90ff;
+        text-decoration: none;
+      }
+      /* Additional fallback font styles for older email clients */
+      .fallback {
+        font-family: "Caveat", cursive, serif;
+      }
+    </style>
+  </head>
+  <body>
+    <table class="email-container" cellspacing="0" cellpadding="0" border="0" align="center">
+      <tr>
+        <td class="header">
+          <img src="https://i.postimg.cc/1zFwKvmz/Logo.png" alt="Abhishek Kumar Logo" />
+          <h1 class="fallback">ABHISHEK KUMAR</h1>
+        </td>
+      </tr>
+      <tr>
+        <td class="content">
+          <p>Dear {{name}},</p>
+          <p>Your One-Time Password (OTP) for verification is:</p>
+          <div class="otp-code">{{otp}}</div>
+          <p>This OTP is valid for the next 10 minutes. Please do not share it with anyone.</p>
+        </td>
+      </tr>
+      <tr>
+        <td class="footer">
+          <p>
+            For assistance, contact us at
+            <a href="mailto:official@iamabhi.tech">official@iamabhi.tech</a> or
+            WhatsApp us at <a href="https://wa.me/916206418701">6206418701</a>.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

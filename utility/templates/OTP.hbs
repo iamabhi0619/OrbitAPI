@@ -1,0 +1,44 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OTP Verification</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4;
+      text-align: center; } .container { width: 100%; max-width: 600px; margin: 20px auto;
+      background: white; border-radius: 8px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); } .header
+      { background: #0b1741; padding: 0px; text-align: center; width: 100%; } .header img {
+      max-width: 100%; } .content { padding: 20px; text-align: left; } h2 { font-family: "Comic Sans
+      MS", cursive, sans-serif; font-size: 24px; } p { font-size: 16px; color: #333; } .otp-code {
+      font-size: 30px; font-weight: bold; color: #0b1741; background: #e0f7fa; padding: 15px 25px;
+      display: inline-block; border-radius: 5px; letter-spacing: 10px; border: 1px solid #b3d9ff; }
+      .footer { margin-top: 20px; padding: 15px; background: #0b1741; color: white; text-align:
+      center; border-radius: 0 0 8px 8px; } .footer a { color: white; text-decoration: none; margin:
+      0 10px; font-size: 18px; } .footer img { width: 25px; margin: 5px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img
+          src="https://firebasestorage.googleapis.com/v0/b/eventify-b1645.appspot.com/o/assets%2Fbanner.jpg?alt=media&token=d9455d13-5fa4-4d05-90cb-1f6cad0c3068"
+          alt="Abhishek Kumar Logo"
+        />
+      </div>
+      <div class="content">
+        <h2>Dear {{name}},</h2>
+        <p>Your One-Time Password (OTP) for verification is:</p>
+        <div class="otp-code">{{otp}}</div>
+        <p>This OTP is valid for the next 10 minutes. Please do not share it with anyone.</p>
+      </div>
+      <div class="footer">
+        <p>
+          For assistance, contact us at
+          <a href="mailto:official@iamabhi.tech">official@iamabhi.tech</a>
+          or WhatsApp us at
+          <a href="https://wa.me/916206418701">6206418701</a>.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
