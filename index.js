@@ -55,7 +55,7 @@ app.get("/", (req, res) => {
   res.send("All good..!!");
 });
 
-// app.use("/api/user", UserRoutes);
+app.use("/api/user", UserRoutes);
 app.use("/api/auth", userAuthRoutes);
 app.use("/api/user", UserRoutes);
 app.use("/api/logs", logRoutes);
