@@ -1,20 +1,23 @@
-# Use latest Node.js image
-FROM node:18
+# Use Node.js LTS version
+FROM node:20-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and install dependencies
-COPY package.json ./
-RUN npm install
+# Copy only package.json and lock file to leverage Docker cache
+COPY package*.json ./
 
-# Copy all files
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy app files
 COPY . .
 
-# Expose port
+# Set environment variable
+ENV NODE_ENV=production
+
+# Expose the port
 EXPOSE 5050
 
-# Start the app using PM2
-# CMD ["pm2-runtime", "ecosystem.config.js"]
-
-CMD ["node", "index.js"]
+# Run the app
+CMD ["npm", "start"]
