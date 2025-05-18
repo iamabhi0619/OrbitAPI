@@ -38,6 +38,21 @@
   },
   "homepage": "https://github.com/iamabhi0619/OrbitAPI#readme",
   "dependencies": {
-    "express": "^5.1.0"
+    "bcrypt": "^6.0.0",
+    "cloudinary": "^1.41.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "handlebars": "^4.7.8",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.14.3",
+    "multer": "^1.4.5-lts.2",
+    "multer-storage-cloudinary": "^4.0.0",
+    "nodemailer": "^7.0.3",
+    "slugify": "^1.6.6",
+    "uuid": "^11.1.0",
+    "winston": "^3.17.0",
+    "winston-telegram": "^2.7.0"
   }
 }
