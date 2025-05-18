@@ -1,6 +1,6 @@
 const express = require("express");
-const { verifyToken, isAdmin } = require("../../middleware/auth");
 const { getAllTags, getTagsByUsageCount, getTagsByParent, getTagById, createTag, updateTag, deleteTag } = require("../../controllers/blog/tagController");
+const { verifyToken, isAdmin } = require("../../middlewares/authMiddleware");
 const Router = express.Router();
 
 

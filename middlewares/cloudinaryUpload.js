@@ -7,7 +7,7 @@ const logger = require('../config/logger'); // Add logger
 const cloudinaryUpload = (options = {}) => {
   const {
     folder = 'uploads',
-    allowedFormats = ['jpg', 'jpeg', 'png', 'webp'],
+    allowedFormats = ['jpg', 'jpeg', 'png', 'webp', 'pdf', 'mp4', 'mov', 'webm'],
     resourceType = 'image',
     fileField = 'file',
     maxFileSize = 5 * 1024 * 1024,

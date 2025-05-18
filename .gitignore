@@ -6,4 +6,5 @@ npm-debug.log*
 coverage/
 dist/
 .vscode
+./logs/app.log
 docker-compose.yml

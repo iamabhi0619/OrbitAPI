@@ -52,6 +52,13 @@ const CLOUDINARY_UPLOAD_TYPES = {
         resourceType: 'image',
         transformations: [{ width: 1920, height: 1080, crop: 'fit' }],
     },
+
+    CERTIFICATE: {
+        folder: 'certificates',
+        allowedFormats: ['jpg', 'jpeg', 'png', 'pdf'],
+        resourceType: 'image',
+        maxFileSize: 5 * 1024 * 1024,
+    },
 };
 
 module.exports = CLOUDINARY_UPLOAD_TYPES;

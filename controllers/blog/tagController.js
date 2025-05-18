@@ -1,7 +1,7 @@
-const Tag = require("../../model/Blog/tagCategories.model");
+const Tag = require("../../model/Blog/tagCategories.model.js");
 const { default: slugify } = require("slugify");
-const ApiError = require("../../utility/ApiError");
-const logger = require("../../service/logging");
+const ApiError = require("../../utils/ApiError.js");
+const logger = require("../../config/logger.js");
 
 // Create a new tag
 exports.createTag = async (req, res, next) => {

@@ -34,9 +34,20 @@ const apiLimiter = rateLimit({
     handler: rateLimitErrorResponse
 });
 
+const statsLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 50,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: "Too many requests from this IP, please try again later.",
+    statusCode: 429,
+    handler: rateLimitErrorResponse
+});
+
 
 // Export all limiters
 module.exports = {
     sensitiveLimiter,
-    apiLimiter
+    apiLimiter,
+    statsLimiter
 };
