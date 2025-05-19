@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
-const Post = require("../../model/Blog/post.model.js");
+const Post = require("../../model/blog/post.js");
+const slugify = require("slugify");
 const ApiError = require("../../utils/ApiError.js");
 const logger = require("../../config/logger.js");
-const slugify = require("slugify");
 
 exports.createPost = async (req, res, next) => {
     try {

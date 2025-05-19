@@ -1,4 +1,4 @@
-const TagCategory = require("../../model/Blog/tagCategories.model.js");
+const TagCategory = require("../../model/blog/tagCategories.js");
 const { default: slugify } = require("slugify");
 const ApiError = require("../../utils/ApiError.js");
 const logger = require("../../config/logger.js");
