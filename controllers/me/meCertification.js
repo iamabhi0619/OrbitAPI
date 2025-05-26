@@ -1,7 +1,7 @@
-import { Certification } from "../../model/certification.js";
-import moment from "moment";
-import ApiError from "../../utils/ApiError.js";
-import logger from "../../config/logger.js";
+const Certification = require("../../model/certification.js");
+const moment = require("moment");
+const ApiError = require("../../utils/ApiError.js");
+const logger = require("../../config/logger.js");
 
 // 🧠 Helper: Get certification by ID
 const findCert = async (id, next) => {
@@ -13,7 +13,7 @@ const findCert = async (id, next) => {
 };
 
 // ✅ Upload a certification
-export const uploadCert = async (req, res, next) => {
+exports.uploadCert = async (req, res, next) => {
     try {
         const { title, organization, issueDate, credentialID, credentialURL, description, category } = req.body;
 
@@ -54,7 +54,7 @@ export const uploadCert = async (req, res, next) => {
 };
 
 // ✅ Get all certifications
-export const getCerts = async (req, res, next) => {
+exports.getCerts = async (req, res, next) => {
     try {
         const certs = await Certification.find().sort({ issueDate: -1, createdAt: -1 });
 
@@ -72,7 +72,7 @@ export const getCerts = async (req, res, next) => {
 };
 
 // ✅ Get a certification by ID
-export const getCertById = async (req, res, next) => {
+exports.getCertById = async (req, res, next) => {
     try {
         const cert = await findCert(req.params.id, next);
         if (!cert) return;
@@ -85,7 +85,7 @@ export const getCertById = async (req, res, next) => {
 };
 
 // ✅ Update a certification
-export const updateCert = async (req, res, next) => {
+exports.updateCert = async (req, res, next) => {
     try {
         const cert = await findCert(req.params.id, next);
         if (!cert) return;
@@ -118,7 +118,7 @@ export const updateCert = async (req, res, next) => {
 };
 
 // ✅ Delete a certification
-export const deleteCert = async (req, res, next) => {
+exports.deleteCert = async (req, res, next) => {
     try {
         const cert = await findCert(req.params.id, next);
         if (!cert) {
@@ -137,7 +137,7 @@ export const deleteCert = async (req, res, next) => {
 };
 
 // ✅ Get summary of certifications
-export const getCertSummary = async (req, res, next) => {
+exports.getCertSummary = async (req, res, next) => {
     try {
         const totalCerts = await Certification.countDocuments();
         const latest = await Certification.findOne().sort({ issueDate: -1 });

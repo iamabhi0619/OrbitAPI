@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
-const { Schema } = mongoose;
 
-const certificationSchema = new Schema(
+const certificationSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     organization: { type: String, required: true },
@@ -17,4 +16,4 @@ const certificationSchema = new Schema(
 );
 
 const Certification = mongoose.model("Certification", certificationSchema);
-module.exports = { Certification };
+module.exports = Certification;
