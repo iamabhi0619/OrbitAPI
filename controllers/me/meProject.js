@@ -37,7 +37,13 @@ exports.createProject = async (req, res, next) => {
         await project.save();
         res.status(201).json({ success: true, message: "Project created", data: project });
     } catch (err) {
-        logger.error("Create Project Error: ", err);
+        if (err.name === "ValidationError") {
+            return next(new ApiError(400, "Invalid project data", "INVALID_PROJECT_DATA", err.message));
+        }
+        if (err.code === 11000) {
+            return next(new ApiError(409, "Project already exists", "PROJECT_EXISTS", "A project with this name or slug already exists."));
+        }
+        logger.error("Project Creation Error: ", err);
         next(new ApiError(500, "Failed to create project", "PROJECT_CREATION_FAILED", err.message));
     }
 };
@@ -128,7 +134,7 @@ exports.addUserReview = async (req, res, next) => {
         const project = await getProjectByIdOrSlug(projectId);
         if (!project) return next(new ApiError(404, "Project not found", "PROJECT_NOT_FOUND", "No such Project found."));
 
-        project.user_reviews.push({ name, review, important: !!important, date: new Date() });
+        project.user_reviews.push({ name, review, important: !!important, date: new Date(), star: 3 });
         await project.save();
         res.status(201).json({ success: true, message: "Review added successfully" });
     } catch (err) {

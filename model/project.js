@@ -13,6 +13,9 @@ const projectSchema = new mongoose.Schema({
   deployment_date: Date,
   version: String,
   estimated_hours: Number,
+  coverImage: String,
+  youtubeUrl: String,
+  videoUrl: String,
   budget: Number,
   client: String,
   database: String,
@@ -25,6 +28,7 @@ const projectSchema = new mongoose.Schema({
       {
         name: { type: String, required: true },
         review: { type: String, required: true },
+        star: { type: Number, required: true },
         date: { type: Date, default: Date.now },
         important: { type: Boolean, default: false },
       },
