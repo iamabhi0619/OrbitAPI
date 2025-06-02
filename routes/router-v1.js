@@ -7,6 +7,7 @@ router.use("/user/me", require("./userRoutes/meRoutes"));
 router.use("/me", require("./meRoutes"));
 router.use("/logs", require("./logRoutes"));
 router.use("/blog", require("./blog/blogRoutes"));
+router.use("/gtw", require("./GuessTheWord/base"));
 
 
 module.exports = router;
