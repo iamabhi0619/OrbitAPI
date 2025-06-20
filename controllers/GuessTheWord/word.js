@@ -50,6 +50,33 @@ exports.getSingleWord = async (req, res, next) => {
 // ADD WORD
 exports.addWord = async (req, res, next) => {
     try {
+        if (Array.isArray(req.body)) {
+            const wordsToAdd = req.body;
+            const results = [];
+            for (const item of wordsToAdd) {
+                let { slug, word, hint, meaning, level, category, synonyms, antonyms, examples, language, tags, addedBy } = item;
+                if (!word || !hint || !meaning || typeof level !== "number") {
+                    results.push({ success: false, word, error: "Missing required fields" });
+                    continue;
+                }
+                slug = slugify(slug || word, { lower: true, strict: true });
+                const existing = await Word.findOne({ $or: [{ slug }, { word }] });
+                if (existing) {
+                    results.push({ success: false, word, error: "Word or slug already exists" });
+                    continue;
+                }
+                const newWord = new Word({ slug, word, hint, meaning, level, category, synonyms, antonyms, examples, language, tags, addedBy });
+                await newWord.save();
+                results.push({ success: true, word: newWord });
+            }
+            return res.status(201).json({
+                success: true,
+                message: "Bulk word addition completed.",
+                results
+            });
+        }
+
+        // Single word addition
         let { slug, word, hint, meaning, level, category, synonyms, antonyms, examples, language, tags, addedBy } = req.body;
 
         if (!word || !hint || !meaning || typeof level !== "number") {

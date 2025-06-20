@@ -1,4 +1,3 @@
-
 // const Word = require("../model/gtwWord");
 // const logger = require("../service/logging");
 // const moment = require("moment");
@@ -6,6 +5,9 @@
 const mongoose = require("mongoose");
 const Word = require("../../model/GuessTheWord/word");
 const logger = require("../../config/logger");
+
+
+const MAX_SEEN_WORDS = 1000;
 
 
 const scrambleWords = (word) => {
@@ -20,45 +22,41 @@ const scrambleWords = (word) => {
 };
 
 
-
 const getRandomWord = async (level, seenWords = [], scorecard) => {
     try {
-        if (seenWords.length > 500) {
-            seenWords = seenWords.slice(-500);
+
+
+        if (scorecard.currentQuestion && !scorecard.currentQuestion.isSolved && !scorecard.currentQuestion.isSkipped) {
+            return scorecard.currentQuestion;
+        }
+
+        if (seenWords.length > MAX_SEEN_WORDS) {
+            seenWords = seenWords.slice(-MAX_SEEN_WORDS);
         }
         const seenIds = seenWords.map(id => new mongoose.Types.ObjectId(id));
         const [word] = await Word.aggregate([
-            {
-                $match: {
-                    level,
-                    _id: { $nin: seenIds },
-                },
-            },
+            { $match: { level, _id: { $nin: seenIds } } },
             { $sample: { size: 1 } },
         ]);
         if (!word) {
             return { success: false, message: "No words available at this level." };
         }
+
         let scrambledWord;
         do {
             scrambledWord = scrambleWords(word.word);
         } while (scrambledWord === word.word);
-
-        scorecard.currentQuestion = {
+        const data = {
             wordId: word._id,
-            scrambledWord,
-            difficulty: word.level,
+            scrambledWord: scrambledWord,
+            difficulty: word.level
         }
+        scorecard.currentQuestion = { ...data };
+        scorecard.seenWords.push(word._id);
+        scorecard.history.push(data);
+        await scorecard.save();
 
-        return {
-            wordId: word._id,
-            scrambledWord,
-            isSolved: false,
-            isSkipped: false,
-            usedHint: false,
-            difficulty: word.level,
-            tries: 0,
-        };
+        return scorecard.currentQuestion;
     } catch (error) {
         logger.error(`Error fetching random word: ${error}`);
         return null;
@@ -98,7 +96,7 @@ const scoreUpdate = async (user, status, word, meaning, time) => {
             } else if (user.currentLevel >= 5 && user.currentLevel <= 6) {
                 user.questionsSolved.hard = (user.questionsSolved.hard || 0) + 1;
             } else {
-                user.questionsSolved.easy = (user.questionsSolved.easy || 0) + 1; // Default case
+                user.questionsSolved.easy = (user.questionsSolved.easy || 0) + 1;
             }
             if (user.correctGuesses >= (levelThresholds[user.currentLevel] || 20)) {
                 user.currentLevel = Math.min(user.currentLevel + 1, 6);

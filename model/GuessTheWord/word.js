@@ -15,7 +15,7 @@ const wordSchema = new Schema({
   tags: { type: [String], default: [] },
   addedBy: { type: String, default: "system" },
   timesPlayed: { type: Number, default: 0 },
-  successRate: { type: Number, default: 0 },
+  timesCorrect: { type: Number, default: 0 },
 }, { timestamps: true });
 
 const Word = mongoose.model("Word", wordSchema);

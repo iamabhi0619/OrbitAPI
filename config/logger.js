@@ -1,86 +1,113 @@
 const winston = require("winston");
-const TelegramLogger = require("winston-telegram");
+const DailyRotateFile = require("winston-daily-rotate-file");
 const { v4: uuidv4 } = require("uuid");
 const path = require("path");
-const config = require(".");
+const config = require("."); // your config file
+let TelegramLogger;
 
+try {
+    TelegramLogger = require("winston-telegram");
+} catch (err) {
+    console.warn("⚠️ winston-telegram not installed. Telegram logs will be skipped.");
+}
+
+// Custom log levels
 const levels = {
     levels: {
-        info: 0,
-        header: 1,
-        warn: 2,
-        error: 3,
+        error: 0,
+        warn: 1,
+        info: 2,
+        header: 3,
     },
     colors: {
-        info: 'green',
-        header: 'cyan bold',
-        warn: 'yellow',
-        error: 'red bold',
+        error: "red bold",
+        warn: "yellow",
+        info: "green",
+        header: "cyan",
     },
 };
 
 winston.addColors(levels.colors);
 
-// Common formatting base
-const baseFormat = winston.format.combine(
-    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    winston.format.errors({ stack: true }),
-    winston.format((info) => {
-        info.id = uuidv4(); // Unique ID for each log
-        return info;
-    })()
-);
+// Add common meta info (ID, stack, timestamp)
+const enrichMeta = winston.format((info) => {
+    const meta = {
+        id: uuidv4(),
+        stack: info.stack || "",
+        timestamp: info.timestamp || new Date().toISOString(),
+    };
+    info.meta = { ...info.meta, ...meta };
+    return info;
+});
 
-// Console format (colorized and readable)
+// Console output formatting
 const consoleFormat = winston.format.combine(
     winston.format.colorize({ all: true }),
     winston.format.label({ label: "OrbitAPI" }),
-    baseFormat,
+    winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+    winston.format.errors({ stack: true }),
+    enrichMeta(),
     winston.format.printf((info) => {
-        return `[${info.timestamp}] [${info.label}] [${info.level}] ${info.message} ${info.stack || ''}`;
+        return `[${info.timestamp}] [${info.label}] [${info.level}]: ${info.message} ${info.stack || ""}`;
     })
 );
 
-// JSON format for file and Telegram
+// JSON format for files & Telegram
 const jsonFormat = winston.format.combine(
-    baseFormat,
+    winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+    winston.format.errors({ stack: true }),
+    enrichMeta(),
     winston.format.json()
 );
 
-// Telegram logger transport
-const telegramTransport = new TelegramLogger({
-    token: config.TELEGRAM_TOKEN,
-    chatId: config.TELEGRAM_CHAT_ID,
-    level: "error",
-    unique: true,
-    template:
-        `🚨 *{level.toUpperCase()} Error!*\n` +
-        `*ID:* {meta.id}\n` +
-        `*Time:* {timestamp}\n` +
-        `*Message:* {message}\n` +
-        `*Stack:* {meta.stack}`,
-    parse_mode: 'Markdown',
+// Daily rotating file transport
+const fileTransport = new DailyRotateFile({
+    filename: path.join(__dirname, "../logs/app-%DATE%.log"),
+    datePattern: "YYYY-MM-DD",
+    maxSize: "10m",
+    maxFiles: "14d",
+    level: "info",
+    format: jsonFormat,
 });
 
-// 🚫 Fix MaxListenersExceededWarning
-telegramTransport.setMaxListeners(50);
+// Optional Telegram transport
+let telegramTransport = null;
 
+if (TelegramLogger && config.TELEGRAM_TOKEN && config.TELEGRAM_CHAT_ID) {
+    try {
+        telegramTransport = new TelegramLogger({
+            token: config.TELEGRAM_TOKEN,
+            chatId: config.TELEGRAM_CHAT_ID,
+            level: "error",
+            unique: true,
+            format: jsonFormat,
+            template:
+                `🚨 {level} Alert!\n` +
+                `ID: {id}\n` +
+                `Time: {timestamp}\n\n` +
+                `Message:\n{message}\n\n` +
+                `Stack:\n{meta.stack}`,
+            parse_mode: "MarkdownV2",
+        });
+
+        telegramTransport.setMaxListeners(50);
+    } catch (err) {
+        console.error("❌ Failed to initialize Telegram logger:", err);
+    }
+}
+
+// Final Winston logger instance
 const logger = winston.createLogger({
     levels: levels.levels,
-    level: 'info',
+    level: "info",
     transports: [
         new winston.transports.Console({
             format: consoleFormat,
         }),
-
-        new winston.transports.File({
-            filename: path.join(__dirname, "../logs/app.log"),
-            level: "info",
-            format: jsonFormat,
-        }),
-
-        telegramTransport,
+        fileTransport,
+        ...(telegramTransport ? [telegramTransport] : []),
     ],
+    exitOnError: false,
 });
 
 module.exports = logger;

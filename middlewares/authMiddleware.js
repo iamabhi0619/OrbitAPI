@@ -14,8 +14,15 @@ const verifyToken = (req, res, next) => {
         req.user = decoded;
         next();
     } catch (error) {
-        logger.error("Error verifying token:", error);
-        next(new ApiError(401, "Invalid token", "INVALID_TOKEN", "Invalid token."));
+        if (error.name === "TokenExpiredError") {
+            next(new ApiError(401, "Invalid token", "INVALID_TOKEN", "Invalid token."));
+        }
+        else if (error.name === "JsonWebTokenError") {
+            next(new ApiError(401, "Invalid token", "INVALID_TOKEN", "Invalid token."));
+        } else {
+            logger.error("Error verifying token:", error);
+            next(new ApiError(500, "Internal server error", "TOKEN_VERIFICATION_ERROR", "An error occurred while verifying the token."));
+        }
     }
 };
 
