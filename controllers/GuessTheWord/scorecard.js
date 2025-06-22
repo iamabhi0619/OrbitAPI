@@ -6,7 +6,7 @@ const { updateHint } = require("../../utils/GuessTheWord/hint.js");
 exports.getScorecard = async (req, res, next) => {
     try {
         const userId = req.user._id;
-        const scorecard = await GTWScorecard.findOne({ user: userId }).select("-__v -createdAt -updatedAt -history -dailyStats -seenWords");
+        const scorecard = await GTWScorecard.findOne({ user: userId }).select("-__v -createdAt -updatedAt -history -seenWords");
         if (!scorecard) {
             return next(new ApiError(404, "Scorecard not found", "SCORECARD_NOT_FOUND", "No scorecard exists for the user."));
         }

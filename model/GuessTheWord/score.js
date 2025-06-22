@@ -51,7 +51,7 @@ const historyEntrySchema = new Schema({
 }, { _id: false });
 
 const achievementSchema = new Schema({
-  key: { type: String, required: true, unique: true },
+  key: { type: String, required: true },
   title: { type: String, required: true },
   subtitle: { type: String }
 }, { _id: false });
@@ -72,7 +72,7 @@ const gtwSchema = new Schema({
   unlockedLevels: { type: [Number], default: [1] },
   levelsCompleted: { type: [Number], default: [] },
 
-  score: { type: Number, default: 0, min: 0, max: 100 },
+  score: { type: Number, default: 0, min: 0 },
   xp: { type: Number, default: 0 },
   points: { type: Number, default: 0 },
 

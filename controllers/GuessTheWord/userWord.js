@@ -1,7 +1,7 @@
 const GTWScorecard = require("../../model/GuessTheWord/score.js");
 const ApiError = require("../../utils/ApiError.js");
 const logger = require("../../config/logger.js");
-const { getRandomWord } = require("../../utils/GuessTheWord/word.js");
+const { getRandomWord, updateAchievements } = require("../../utils/GuessTheWord/word.js");
 
 const Word = require("../../model/GuessTheWord/word.js");
 const { checkAchievements, determineCurrentLevel, calculateReward, achievements } = require("../../utils/GuessTheWord/achievements.js");
@@ -19,19 +19,22 @@ exports.getRandomWord = async (req, res, next) => {
         const userId = req?.user?._id;
 
         if (!userId) {
-            return next(new ApiError(401, "Unauthorized", "UNAUTHORIZED", "User ID not found in request."));
+            return next(new ApiError(401, "Unauthorized", "UNAUTHORIZED", "User ID not found in request. Make sure you are logged in and sending a valid token."
+            ));
         }
 
         const scorecard = await GTWScorecard.findOne({ user: userId });
 
         if (!scorecard) {
-            return next(new ApiError(404, "Scorecard not found", "SCORECARD_NOT_FOUND", "No scorecard exists for the user."));
+            return next(new ApiError(404, "Scorecard not found", "SCORECARD_NOT_FOUND", "No scorecard exists for the user. Please start a new game."
+            ));
         }
 
         const currentLevel = scorecard.currentLevel;
 
         if (typeof currentLevel !== "number" || currentLevel < 1 || currentLevel > 6) {
-            return next(new ApiError(400, "Invalid level", "INVALID_LEVEL", "Current level must be a number between 1 and 6."));
+            return next(new ApiError(400, "Invalid level", "INVALID_LEVEL", "Current level must be a number between 1 and 6. Please check your scorecard."
+            ));
         }
 
         // Block fetching a new word if the current one is not solved or skipped
@@ -49,7 +52,9 @@ exports.getRandomWord = async (req, res, next) => {
         const newWord = await getRandomWord(currentLevel, seenWords, scorecard);
 
         if (!newWord) {
-            return next(new ApiError(404, "No words available", "NO_WORDS_AVAILABLE", "No unseen words available for the current level."));
+            return next(new ApiError(
+                404, "No words available", "NO_WORDS_AVAILABLE", "No unseen words available for the current level. Try another level or reset your progress."
+            ));
         }
         scorecard.lastPlayedAt = new Date();
         await scorecard.save();
@@ -61,11 +66,7 @@ exports.getRandomWord = async (req, res, next) => {
 
     } catch (error) {
         logger.error("Error in getRandomWord controller:", error);
-        return next(new ApiError(
-            500,
-            "Failed to get random word",
-            "RANDOM_WORD_FETCH_ERROR",
-            "An unexpected error occurred while retrieving a random word."
+        return next(new ApiError(500, "Failed to get random word", "RANDOM_WORD_FETCH_ERROR", "An unexpected error occurred while retrieving a random word. Please try again later."
         ));
     }
 };
@@ -76,22 +77,26 @@ exports.checkWordGuess = async (req, res, next) => {
         const { guess } = req.body;
 
         if (!guess || typeof guess !== "string") {
-            return next(new ApiError(400, "Invalid guess", "INVALID_GUESS"));
+            return next(new ApiError(400, "Invalid guess", "INVALID_GUESS", "Guess must be a non-empty string."
+            ));
         }
 
         const scorecard = await GTWScorecard.findOne({ user: userId });
         if (!scorecard || !scorecard.currentQuestion) {
-            return next(new ApiError(404, "No active question", "NO_ACTIVE_QUESTION"));
+            return next(new ApiError(404, "No active question", "NO_ACTIVE_QUESTION", "There is no active question to guess. Please fetch a new word."
+            ));
         }
 
         const current = scorecard.currentQuestion;
         if (current.isSolved || current.isSkipped) {
-            return next(new ApiError(400, "Question already handled", "QUESTION_ALREADY_SOLVED"));
+            return next(new ApiError(400, "You already solved the current Question.", "QUESTION_ALREADY_SOLVED", "You have already solved or skipped the current question. Please fetch a new word to continue."
+            ));
         }
 
         const wordDoc = await Word.findById(current.wordId);
         if (!wordDoc) {
-            return next(new ApiError(404, "Word not found", "WORD_NOT_FOUND"));
+            return next(new ApiError(404, "Word not found", "WORD_NOT_FOUND", "The word for the current question could not be found in the database."
+            ));
         }
 
         const isCorrect = guess.trim().toLowerCase() === wordDoc.word.trim().toLowerCase();
@@ -171,20 +176,11 @@ exports.checkWordGuess = async (req, res, next) => {
         // ✅ Achievements
         let newlyUnlocked = checkAchievements(scorecard);
 
-        // Sort by priority (highest first)
+        // Only add achievements that are not already present
         if (newlyUnlocked.length > 0) {
-            scorecard.achievements.push(...newlyUnlocked);
-
-            const priorityMap = Object.fromEntries(
-                achievements.map(a => [a.key, a.priority])
-            );
-
-            scorecard.achievements.sort((a, b) => {
-                const priorityA = priorityMap[a.key] || 0;
-                const priorityB = priorityMap[b.key] || 0;
-                return priorityB - priorityA;
-            });
+            updateAchievements(scorecard, newlyUnlocked, achievements);
         }
+
 
         await scorecard.save();
 
@@ -195,10 +191,20 @@ exports.checkWordGuess = async (req, res, next) => {
             reward,
             newlyUnlockedAchievements: newlyUnlocked, // Already sorted by priority
             currentStreak: scorecard.streak.current,
+            word: {
+                meaning: wordDoc.meaning,
+                word: wordDoc.word,
+                difficulty: wordDoc.difficulty,
+                synonyms: wordDoc.synonyms,
+                antonyms: wordDoc.antonyms,
+                examples: wordDoc.examples,
+                efficiency: (wordDoc.timesCorrect / wordDoc.timesPlayed) * 100 || 100,
+            }
         });
     } catch (error) {
-        logger.error("Error in checkWordGuess:", error.message);
-        next(new ApiError(500, "Internal error", "CHECK_GUESS_ERROR", error.message));
+        logger.error("Error in checkWordGuess:" + error);
+        next(new ApiError(500, "Internal error", "CHECK_GUESS_ERROR", error.message || "An unexpected error occurred while checking the guess."
+        ));
     }
 };
 
@@ -208,21 +214,25 @@ exports.useHint = async (req, res, next) => {
 
         const scorecard = await GTWScorecard.findOne({ user: userId });
         if (!scorecard) {
-            return next(new ApiError(404, "Scorecard not found", "SCORECARD_NOT_FOUND"));
+            return next(new ApiError(404, "Scorecard not found", "SCORECARD_NOT_FOUND", "No scorecard exists for the user. Please start a new game."
+            ));
         }
 
         const current = scorecard.currentQuestion;
         if (!current || current.isSolved || current.isSkipped) {
-            return next(new ApiError(400, "No active question", "NO_ACTIVE_QUESTION"));
+            return next(new ApiError(400, "No active question", "NO_ACTIVE_QUESTION", "There is no active question to use a hint on. Please fetch a new word."
+            ));
         }
 
         if (scorecard.hints.hintsLeft <= 0) {
-            return next(new ApiError(400, "No hints left", "NO_HINTS_LEFT", "You’ve used all your hints for today."));
+            return next(new ApiError(400, "No hints left", "NO_HINTS_LEFT", "You’ve used all your hints for today. Please try again tomorrow."
+            ));
         }
 
         const wordDoc = await Word.findById(current.wordId);
         if (!wordDoc) {
-            return next(new ApiError(404, "Word not found", "WORD_NOT_FOUND"));
+            return next(new ApiError(404, "Word not found", "WORD_NOT_FOUND", "The word for the current question could not be found in the database."
+            ));
         }
 
         const hintNumberUsed = 3 - scorecard.hints.hintsLeft + 1;
@@ -301,7 +311,8 @@ exports.useHint = async (req, res, next) => {
 
     } catch (error) {
         console.error("Error in useHint:", error);
-        next(new ApiError(500, "Failed to use hint", "HINT_USE_FAILED", error.message));
+        next(new ApiError(500, "Failed to use hint", "HINT_USE_FAILED", error.message || "An unexpected error occurred while using a hint."
+        ));
     }
 };
 
@@ -311,18 +322,21 @@ exports.skipWord = async (req, res, next) => {
 
         const scorecard = await GTWScorecard.findOne({ user: userId });
         if (!scorecard) {
-            return next(new ApiError(404, "Scorecard not found", "SCORECARD_NOT_FOUND"));
+            return next(new ApiError(404, "Scorecard not found", "SCORECARD_NOT_FOUND", "No scorecard exists for the user. Please start a new game."
+            ));
         }
 
         const current = scorecard.currentQuestion;
 
         if (!current || current.isSolved || current.isSkipped) {
-            return next(new ApiError(400, "No active question to skip", "NO_ACTIVE_QUESTION"));
+            return next(new ApiError(400, "No active question to skip", "NO_ACTIVE_QUESTION", "There is no active question to skip. Please fetch a new word."
+            ));
         }
 
         const wordDoc = await Word.findById(current.wordId);
         if (!wordDoc) {
-            return next(new ApiError(404, "Word not found", "WORD_NOT_FOUND"));
+            return next(new ApiError(404, "Word not found", "WORD_NOT_FOUND", "The word for the current question could not be found in the database."
+            ));
         }
 
         // Mark the question as skipped
@@ -380,6 +394,7 @@ exports.skipWord = async (req, res, next) => {
         });
     } catch (error) {
         logger.error("skipWord error:", error);
-        next(new ApiError(500, "Failed to skip word", "SKIP_WORD_ERROR", error.message));
+        next(new ApiError(500, "Failed to skip word", "SKIP_WORD_ERROR", error.message || "An unexpected error occurred while skipping the word."
+        ));
     }
 };

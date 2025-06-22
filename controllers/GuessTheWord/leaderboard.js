@@ -12,7 +12,8 @@ exports.globalLeaderboard = async (req, res, next) => {
         const leaderboard = await GTWScorecard.find({})
             .sort({ score: -1, xp: -1 })
             .limit(limit)
-            .populate("user", "username avatar");
+            .select("user score xp points totalQuestionsSolved totalAttempts totalHintsUsed totalSkipped correctGuesses efficiency currentLevel unlockedLevels levelsCompleted")
+            .populate("user", "username avatar name");
 
         res.status(200).json({
             success: true,

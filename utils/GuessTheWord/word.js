@@ -150,10 +150,48 @@ const provideHint = (actualWord, hintsUsed) => {
     }
 };
 
+
+const updateAchievements = (scorecard, newlyUnlocked, allAchievements) => {
+    if (!Array.isArray(newlyUnlocked) || newlyUnlocked.length === 0) return;
+
+    // STEP 1: Get already existing keys in user's scorecard
+    const existingKeys = new Set(scorecard.achievements.map(a => a.key));
+
+    // STEP 2: Filter out only new achievements not already present
+    const filteredNew = newlyUnlocked.filter(a => !existingKeys.has(a.key));
+    if (filteredNew.length === 0) return;
+
+    // STEP 3: Add filtered new ones
+    scorecard.achievements.push(...filteredNew);
+
+    // STEP 4: Deduplicate achievements by `key` (robust way)
+    const uniqueMap = new Map();
+    for (const ach of scorecard.achievements) {
+        if (!uniqueMap.has(ach.key)) {
+            uniqueMap.set(ach.key, ach);
+        }
+    }
+    scorecard.achievements = Array.from(uniqueMap.values());
+
+    // STEP 5: Create a priority map for sorting
+    const priorityMap = Object.fromEntries(
+        allAchievements.map(a => [a.key, a.priority || 0])
+    );
+
+    // STEP 6: Sort achievements by descending priority
+    scorecard.achievements.sort((a, b) => {
+        const priorityA = priorityMap[a.key] || 0;
+        const priorityB = priorityMap[b.key] || 0;
+        return priorityB - priorityA;
+    });
+};
+
+
 module.exports = {
     getRandomWord,
     checkGuess,
     scoreUpdate,
     updateHints,
     provideHint,
+    updateAchievements,
 };
