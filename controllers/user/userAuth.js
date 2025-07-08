@@ -124,7 +124,7 @@ exports.forgetPassword = async (req, res, next) => {
     }
     const resetToken = jwt.sign({ email }, config.SECRET, { expiresIn: "10m" });
     resetTokens.set(email, { token: resetToken, expiresAt: Date.now() + 10 * 60 * 1000 });
-    const resetLink = `${config.CLIENT_URL}/auth/changePassword?token=${resetToken}&email=${email}`;
+    const resetLink = `${config.CLIENT_URL}/auth/change-password?token=${resetToken}&email=${email}`;
     await sendEmail({
       to: user.email,
       subject: "Reset Your Password",

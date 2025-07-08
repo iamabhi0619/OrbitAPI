@@ -11,7 +11,7 @@ module.exports = {
     GITHUB_TOKEN: process.env.GITHUB_TOKEN,
     TELEGRAM_TOKEN: process.env.TELEGRAM_TOKEN || '8189974621:AAHWNBVT6WSx9XA684pWPTeksrZf2KMnyn4',
     TELEGRAM_CHAT_ID: process.env.TELEGRAM_CHAT_ID || '5671345486',
-    CLIENT_URL: process.env.CLIENT_URL || "http://localhost:5173",
+    CLIENT_URL: process.env.CLIENT_URL || "http://localhost:3000",
     PORT: process.env.PORT || 5050,
     NODE_ENV: process.env.NODE_ENV || "development",
 };
