@@ -37,5 +37,9 @@ const PORT = config.PORT;
 
 app.use(errorHandler)
 app.listen(PORT, '0.0.0.0', () => {
-    logger.info(`Server started at port ${PORT}`)
+    try {
+        logger.info(`Server started at port ${PORT}`)
+    } catch (error) {
+        logger.error(error);
+    }
 });
