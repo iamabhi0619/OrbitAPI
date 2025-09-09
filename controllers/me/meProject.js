@@ -50,8 +50,205 @@ exports.createProject = async (req, res, next) => {
 
 exports.getAllProject = async (req, res, next) => {
     try {
-        const projects = await Project.find().sort({ star_rating: -1 });
-        res.status(200).json({ success: true, data: projects });
+        const {
+            // Search parameters
+            search,
+            name,
+            
+            // Filter parameters
+            status,
+            tech_stack,
+            database,
+            hosting,
+            authentication,
+            client,
+            category,
+            
+            // Rating filters
+            min_rating,
+            max_rating,
+            
+            // Date filters
+            start_date_from,
+            start_date_to,
+            end_date_from,
+            end_date_to,
+            deployment_date_from,
+            deployment_date_to,
+            
+            // Budget filters
+            min_budget,
+            max_budget,
+            
+            // Hour filters
+            min_hours,
+            max_hours,
+            
+            // Sorting
+            sort_by = 'star_rating',
+            sort_order = 'desc',
+            
+            // Pagination
+            page = 1,
+            limit = 10,
+            
+            // Field selection
+            fields
+        } = req.query;
+
+        // Build filter object
+        const filter = {};
+
+        // Search functionality
+        if (search) {
+            const searchRegex = new RegExp(search, 'i');
+            filter.$or = [
+                { name: searchRegex },
+                { description_short: searchRegex },
+                { description_long: searchRegex },
+                { tech_stack: { $in: [searchRegex] } },
+                { features: { $in: [searchRegex] } },
+                { client: searchRegex }
+            ];
+        }
+
+        // Specific name search
+        if (name) {
+            filter.name = new RegExp(name, 'i');
+        }
+
+        // Status filter
+        if (status) {
+            if (Array.isArray(status)) {
+                filter.status = { $in: status };
+            } else {
+                filter.status = status;
+            }
+        }
+
+        // Tech stack filter
+        if (tech_stack) {
+            if (Array.isArray(tech_stack)) {
+                filter.tech_stack = { $in: tech_stack.map(tech => new RegExp(tech, 'i')) };
+            } else {
+                filter.tech_stack = new RegExp(tech_stack, 'i');
+            }
+        }
+
+        // Database filter
+        if (database) {
+            filter.database = new RegExp(database, 'i');
+        }
+
+        // Hosting filter
+        if (hosting) {
+            filter.hosting = new RegExp(hosting, 'i');
+        }
+
+        // Authentication filter
+        if (authentication) {
+            filter.authentication = new RegExp(authentication, 'i');
+        }
+
+        // Client filter
+        if (client) {
+            filter.client = new RegExp(client, 'i');
+        }
+
+        // Rating filters
+        if (min_rating || max_rating) {
+            filter.star_rating = {};
+            if (min_rating) filter.star_rating.$gte = parseFloat(min_rating);
+            if (max_rating) filter.star_rating.$lte = parseFloat(max_rating);
+        }
+
+        // Date filters
+        if (start_date_from || start_date_to) {
+            filter.start_date = {};
+            if (start_date_from) filter.start_date.$gte = new Date(start_date_from);
+            if (start_date_to) filter.start_date.$lte = new Date(start_date_to);
+        }
+
+        if (end_date_from || end_date_to) {
+            filter.end_date = {};
+            if (end_date_from) filter.end_date.$gte = new Date(end_date_from);
+            if (end_date_to) filter.end_date.$lte = new Date(end_date_to);
+        }
+
+        if (deployment_date_from || deployment_date_to) {
+            filter.deployment_date = {};
+            if (deployment_date_from) filter.deployment_date.$gte = new Date(deployment_date_from);
+            if (deployment_date_to) filter.deployment_date.$lte = new Date(deployment_date_to);
+        }
+
+        // Budget filters
+        if (min_budget || max_budget) {
+            filter.budget = {};
+            if (min_budget) filter.budget.$gte = parseFloat(min_budget);
+            if (max_budget) filter.budget.$lte = parseFloat(max_budget);
+        }
+
+        // Hour filters
+        if (min_hours || max_hours) {
+            filter.estimated_hours = {};
+            if (min_hours) filter.estimated_hours.$gte = parseFloat(min_hours);
+            if (max_hours) filter.estimated_hours.$lte = parseFloat(max_hours);
+        }
+
+        // Sorting
+        const sortObj = {};
+        const validSortFields = ['name', 'star_rating', 'start_date', 'end_date', 'deployment_date', 'budget', 'estimated_hours', 'createdAt', 'updatedAt'];
+        if (validSortFields.includes(sort_by)) {
+            sortObj[sort_by] = sort_order === 'asc' ? 1 : -1;
+        } else {
+            sortObj.star_rating = -1; // Default sort
+        }
+
+        // Pagination
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
+
+        // Field selection
+        let selectFields = '';
+        if (fields) {
+            selectFields = fields.split(',').join(' ');
+        }
+
+        // Execute query with filters, sorting, and pagination
+        const query = Project.find(filter);
+        
+        if (selectFields) {
+            query.select(selectFields);
+        }
+        
+        const projects = await query
+            .sort(sortObj)
+            .skip(skip)
+            .limit(limitNum);
+
+        // Get total count for pagination
+        const totalProjects = await Project.countDocuments(filter);
+        const totalPages = Math.ceil(totalProjects / limitNum);
+
+        // Response with pagination metadata
+        res.status(200).json({
+            success: true,
+            message: "Projects retrieved successfully",
+            data: projects,
+            pagination: {
+                currentPage: pageNum,
+                totalPages,
+                totalProjects,
+                projectsPerPage: limitNum,
+                hasNextPage: pageNum < totalPages,
+                hasPrevPage: pageNum > 1
+            },
+            filters: {
+                applied: Object.keys(req.query).length > 0,
+                count: Object.keys(filter).length
+            }
+        });
     } catch (err) {
         logger.error("Get All Projects Error: ", err);
         next(new ApiError(500, "Failed to fetch projects", "FETCH_PROJECTS_FAILED", err.message));
@@ -120,7 +317,79 @@ exports.getSummery = async (req, res, next) => {
             acc[p.status] = (acc[p.status] || 0) + 1;
             return acc;
         }, {});
-        res.json({ success: true, data: { total_project, statusCount } });
+
+        // Additional summary statistics
+        const techStackStats = {};
+        const databaseStats = {};
+        const hostingStats = {};
+        const authStats = {};
+        
+        projects.forEach(project => {
+            // Tech stack statistics
+            if (project.tech_stack && project.tech_stack.length > 0) {
+                project.tech_stack.forEach(tech => {
+                    techStackStats[tech] = (techStackStats[tech] || 0) + 1;
+                });
+            }
+            
+            // Database statistics
+            if (project.database) {
+                databaseStats[project.database] = (databaseStats[project.database] || 0) + 1;
+            }
+            
+            // Hosting statistics
+            if (project.hosting) {
+                hostingStats[project.hosting] = (hostingStats[project.hosting] || 0) + 1;
+            }
+            
+            // Authentication statistics
+            if (project.authentication) {
+                authStats[project.authentication] = (authStats[project.authentication] || 0) + 1;
+            }
+        });
+
+        // Rating statistics
+        const ratingsArray = projects.filter(p => p.star_rating).map(p => p.star_rating);
+        const avgRating = ratingsArray.length > 0 ? 
+            (ratingsArray.reduce((sum, rating) => sum + rating, 0) / ratingsArray.length).toFixed(2) : 0;
+
+        // Budget statistics
+        const budgetsArray = projects.filter(p => p.budget && p.budget > 0).map(p => p.budget);
+        const totalBudget = budgetsArray.reduce((sum, budget) => sum + budget, 0);
+        const avgBudget = budgetsArray.length > 0 ? (totalBudget / budgetsArray.length).toFixed(2) : 0;
+
+        // Hours statistics
+        const hoursArray = projects.filter(p => p.estimated_hours && p.estimated_hours > 0).map(p => p.estimated_hours);
+        const totalHours = hoursArray.reduce((sum, hours) => sum + hours, 0);
+        const avgHours = hoursArray.length > 0 ? (totalHours / hoursArray.length).toFixed(2) : 0;
+
+        res.json({ 
+            success: true, 
+            data: { 
+                total_project, 
+                statusCount,
+                techStackStats: Object.fromEntries(
+                    Object.entries(techStackStats).sort(([,a], [,b]) => b - a).slice(0, 10)
+                ),
+                databaseStats,
+                hostingStats,
+                authStats,
+                ratings: {
+                    average: parseFloat(avgRating),
+                    total_rated: ratingsArray.length
+                },
+                budget: {
+                    total: totalBudget,
+                    average: parseFloat(avgBudget),
+                    projects_with_budget: budgetsArray.length
+                },
+                hours: {
+                    total: totalHours,
+                    average: parseFloat(avgHours),
+                    projects_with_hours: hoursArray.length
+                }
+            } 
+        });
     } catch (err) {
         logger.error("Get Summary Error: ", err);
         next(new ApiError(500, "Failed to fetch summary", "SUMMARY_FETCH_FAILED", err.message));
@@ -142,7 +411,6 @@ exports.addUserReview = async (req, res, next) => {
         next(new ApiError(500, "Failed to add review", "ADD_REVIEW_FAILED", err.message));
     }
 };
-
 
 exports.markReviewAsImportant = async (req, res, next) => {
     try {

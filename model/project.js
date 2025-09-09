@@ -7,7 +7,7 @@ const projectSchema = new mongoose.Schema({
   description_long: { type: String, required: true },
   tech_stack: [String],
   api_used: [String],
-  status: { type: String, default: "planned" },
+  status: { type: String, default: "planned", enum: ["planned", "in-progress", "completed", "on-hold"] },
   start_date: Date,
   end_date: Date,
   deployment_date: Date,

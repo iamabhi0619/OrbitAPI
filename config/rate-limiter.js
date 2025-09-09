@@ -12,10 +12,10 @@ const rateLimitErrorResponse = (req, res, next, options) => {
     });
 };
 
-// Sensitive endpoints (e.g., login, password reset) 1hrs -> 10
+// Sensitive endpoints (e.g., login, password reset) 1hrs -> 60
 const sensitiveLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
-    max: 10,
+    max: 60,
     standardHeaders: true,
     legacyHeaders: false,
     message: "Too many attempts. Please try again in an hour.",

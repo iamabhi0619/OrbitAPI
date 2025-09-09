@@ -50,7 +50,7 @@ exports.register = async (req, res, next) => {
     // Save the user to the database
     await newUser.save();
     const token = jwt.sign({ userId: newUser._id }, config.SECRET, { expiresIn: "10m" });
-    const verificationUrl = `${config.CLIENT_URL}/auth/verifyEmail?token=${token}`;
+    const verificationUrl = `${config.CLIENT_URL}/auth/verify-email?token=${token}`;
     await sendEmail({
       to: newUser.email,
       subject: "Email Verification",
