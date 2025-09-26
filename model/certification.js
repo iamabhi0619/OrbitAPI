@@ -9,6 +9,7 @@ const certificationSchema = new mongoose.Schema(
     priority: { type: Number, default: 3 },
     credentialID: { type: String, default: "" },
     credentialURL: { type: String, default: "" },
+    category: { type: String, default: "general" },
     description: { type: String, default: "" },
     fileURL: { type: String, default: "" },
   },

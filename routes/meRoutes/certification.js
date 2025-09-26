@@ -9,7 +9,7 @@ router.post("/", verifyToken, isAdmin, cloudinaryUpload(CLOUDINARY_UPLOAD_TYPES.
 router.get("/", getCerts);
 router.get("/summary", getCertSummary);
 router.get("/:id", getCertById);
-// router.put("/:id", updateCert);
+router.put("/:id", verifyToken, isAdmin, cloudinaryUpload(CLOUDINARY_UPLOAD_TYPES.CERTIFICATE), updateCert);
 router.delete("/:id", verifyToken, isAdmin, deleteCert);
 
 

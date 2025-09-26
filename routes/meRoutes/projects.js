@@ -24,7 +24,7 @@ router.post("/", verifyToken, isAdmin, createProject);
 router.get("/", getAllProject);
 router.get("/reviews", getAllReviews);
 router.get("/reviews/:id", getSingleProjectReviews);
-router.get("/:id", verifyToken, getSingleProject);
+router.get("/:id", getSingleProject);
 router.put("/:id", verifyToken, isAdmin, updateProject);
 router.delete("/:id", verifyToken, isAdmin, deleteProject);
 
