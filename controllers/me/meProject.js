@@ -272,26 +272,40 @@ exports.updateProject = async (req, res, next) => {
         const data = req.body;
         const project = await getProjectByIdOrSlug(req.params.id);
         if (!project) return next(new ApiError(404, "Project not found", "PROJECT_NOT_FOUND", "No such Project found."));
-
+        // Prepare formatted fields
         const formattedChangeLog = formatChangeLog(data.change_log);
-        const existingVersions = project.change_log.map((log) => log.version);
+        const existingVersions = (project.change_log || []).map((log) => log.version);
         const newLogs = formattedChangeLog.filter((log) => !existingVersions.includes(log.version));
 
-        Object.assign(project, {
-            ...data,
-            slug: slugify(data.name, { lower: true }),
-            tech_stack: formatArray(data.tech_stack),
-            api_used: formatCsv(data.api_used),
-            features: formatArray(data.features),
-            screenshots: formatArray(data.screenshots),
-        });
 
+        // Build the update object. Use $set for regular fields and $push for new change_log entries
+        const setFields = {
+            ...data,
+            slug: slugify(data.name || project.name, { lower: true }),
+            tech_stack: formatArray(data.tech_stack ?? project.tech_stack),
+            api_used: formatCsv(data.api_used ?? project.api_used),
+            features: formatArray(data.features ?? project.features),
+            screenshots: formatArray(data.screenshots ?? project.screenshots),
+        };
+
+        // Remove undefined keys from setFields to avoid overwriting with undefined
+        Object.keys(setFields).forEach((k) => setFields[k] === undefined && delete setFields[k]);
+
+        // If we are pushing new change_log entries, ensure change_log is not in $set
         if (newLogs.length) {
-            project.change_log.push(...newLogs);
+            delete setFields.change_log;
         }
 
-        await project.save();
-        res.json({ success: true, message: "Project updated", data: project });
+        const update = { $set: setFields };
+        if (newLogs.length) {
+            update.$push = { change_log: { $each: newLogs } };
+        }
+
+        // Use atomic findByIdAndUpdate to avoid optimistic concurrency version errors
+        const updated = await Project.findByIdAndUpdate(project._id, update, { new: true, runValidators: true });
+        if (!updated) return next(new ApiError(404, "Project not found during update", "PROJECT_NOT_FOUND"));
+
+        res.json({ success: true, message: "Project updated", data: updated });
     } catch (err) {
         logger.error("Update Project Error: ", err);
         next(new ApiError(500, "Failed to update project", "UPDATE_PROJECT_FAILED", err.message));

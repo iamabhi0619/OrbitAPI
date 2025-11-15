@@ -7,14 +7,14 @@ const logger = require('./logger');
 const emailTemplates = require('../utils/emailTemplates');
 
 let transporter = nodemailer.createTransport({
-    host: "smtp.zoho.in",
+    host: "smtp.gmail.com",
     port: 587,
     secure: false,
     auth: {
         user: config.EMAIL_USER,
         pass: config.EMAIL_PASS,
     },
-    tls: { rejectUnauthorized: false },
+    maxConnections: 1
 });
 
 // Function to read and compile the template

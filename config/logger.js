@@ -2,8 +2,6 @@ const winston = require("winston");
 const DailyRotateFile = require("winston-daily-rotate-file");
 const { v4: uuidv4 } = require("uuid");
 const path = require("path");
-const config = require("."); // your config file
-let TelegramLogger;
 
 try {
     TelegramLogger = require("winston-telegram");
@@ -70,32 +68,6 @@ const fileTransport = new DailyRotateFile({
     format: jsonFormat,
 });
 
-// Optional Telegram transport
-let telegramTransport = null;
-
-if (TelegramLogger && config.TELEGRAM_TOKEN && config.TELEGRAM_CHAT_ID) {
-    try {
-        telegramTransport = new TelegramLogger({
-            token: config.TELEGRAM_TOKEN,
-            chatId: config.TELEGRAM_CHAT_ID,
-            level: "error",
-            unique: true,
-            format: jsonFormat,
-            template:
-                `🚨 {level} Alert!\n` +
-                `ID: {id}\n` +
-                `Time: {timestamp}\n\n` +
-                `Message:\n{message}\n\n` +
-                `Stack:\n{meta.stack}`,
-            parse_mode: "MarkdownV2",
-        });
-
-        telegramTransport.setMaxListeners(50);
-    } catch (err) {
-        console.error("❌ Failed to initialize Telegram logger:", err);
-    }
-}
-
 // Final Winston logger instance
 const logger = winston.createLogger({
     levels: levels.levels,
@@ -104,8 +76,7 @@ const logger = winston.createLogger({
         new winston.transports.Console({
             format: consoleFormat,
         }),
-        fileTransport,
-        ...(telegramTransport ? [telegramTransport] : []),
+        fileTransport
     ],
     exitOnError: false,
 });

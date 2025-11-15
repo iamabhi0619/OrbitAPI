@@ -14,4 +14,9 @@ module.exports = {
     CLIENT_URL: process.env.CLIENT_URL || "http://localhost:3000",
     PORT: process.env.PORT || 5050,
     NODE_ENV: process.env.NODE_ENV || "development",
+    REFRESH_TOKEN_EXPIRY: process.env.REFRESH_TOKEN_EXPIRY || "30d",
+    JWT_EXPIRATION: process.env.JWT_EXPIRATION || "10m",
+    DOMAIN: process.env.DOMAIN,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
 };

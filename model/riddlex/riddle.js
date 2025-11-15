@@ -215,7 +215,7 @@ const riddleSchema = new mongoose.Schema({
 });
 
 // Indexes for better performance
-riddleSchema.index({ questionId: 1 }, { unique: true });
+// Note: questionId index is already created by unique: true in schema definition
 riddleSchema.index({ level: 1, category: 1 });
 riddleSchema.index({ status: 1, publishedAt: -1 });
 riddleSchema.index({ tags: 1 });

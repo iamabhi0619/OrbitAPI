@@ -3,23 +3,20 @@ const path = require('path');
 const config = require('./config');
 const connectDB = require('./config/db');
 const logger = require('./config/logger');
-const cors = require('cors');
 const { apiLimiter } = require('./config/rate-limiter');
 const errorHandler = require('./middlewares/errorHandler');
+const cors = require("cors");
+const useCors = require('./config/cors');
+const cookieParser = require("cookie-parser");
+
 
 const app = express();
-
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(useCors);
+// app.use(cors());
 app.use(apiLimiter);
-
-
-
-
-//Pre setup
-connectDB();
-
+app.use(cookieParser());
 
 
 
@@ -36,10 +33,13 @@ const PORT = config.PORT;
 
 
 app.use(errorHandler)
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', async () => {
     try {
+        //Pre setup
+        await connectDB();
         logger.info(`Server started at port ${PORT}`)
     } catch (error) {
+
         logger.error(error);
     }
 });

@@ -44,6 +44,7 @@ const projectSchema = new mongoose.Schema({
       version: { type: String, required: true },
       date: { type: Date, required: true },
       changes: { type: String, required: true },
+      images: [String],
     },
   ],
 });
