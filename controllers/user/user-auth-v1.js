@@ -401,14 +401,14 @@ exports.login = async (req, res, next) => {
 exports.refreshToken = async (req, res, next) => {
     try {
         console.log(req.cookies)
-        const { refreshToken } = req.cookies;
-        if (!refreshToken) {
+        const { refresh_token } = req.cookies;
+        if (!refresh_token) {
             throw new ApiError(401, "Refresh token missing", "TOKEN_MISSING", "Please log in again");
         }
         const jwt = require('jsonwebtoken');
         let payload;
         try {
-            payload = jwt.verify(refreshToken, config.SECRET);
+            payload = jwt.verify(refresh_token, config.SECRET);
         } catch (tokenError) {
             throw new ApiError(401, "Invalid refresh token", "INVALID_TOKEN", "Please log in again");
         }
@@ -421,9 +421,7 @@ exports.refreshToken = async (req, res, next) => {
         res.status(200).json({
             success: true,
             message: "Access token refreshed successfully",
-            data: {
-                accessToken: newAccessToken
-            }
+            accessToken: newAccessToken
         });
     } catch (error) {
         if (error instanceof ApiError) {

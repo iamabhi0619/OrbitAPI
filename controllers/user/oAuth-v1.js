@@ -79,7 +79,7 @@ exports.GoogleOAuthCallbackV1 = async (req, res, next) => {
                 });
 
                 // Redirect with access token
-                return res.redirect(`${redirect}?token=${accessToken}&success=true`);
+                return res.redirect(`${redirect}`);
             } catch (callbackError) {
                 console.error('Error in OAuth callback:', callbackError);
                 return res.redirect(`${redirect}?error=OAuthFailed&message=${encodeURIComponent('An error occurred during authentication')}`);

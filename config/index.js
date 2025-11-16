@@ -9,8 +9,6 @@ module.exports = {
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
     CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
     GITHUB_TOKEN: process.env.GITHUB_TOKEN,
-    TELEGRAM_TOKEN: process.env.TELEGRAM_TOKEN || '8189974621:AAHWNBVT6WSx9XA684pWPTeksrZf2KMnyn4',
-    TELEGRAM_CHAT_ID: process.env.TELEGRAM_CHAT_ID || '5671345486',
     CLIENT_URL: process.env.CLIENT_URL,
     PORT: process.env.PORT || 5050,
     NODE_ENV: process.env.NODE_ENV || "development",

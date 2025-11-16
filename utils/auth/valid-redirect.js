@@ -5,7 +5,6 @@ const isValidRedirect = (redirectUrl, domain) => {
     try {
         const url = new URL(redirectUrl);
         const hostname = url.hostname;
-        console.log(hostname);
 
         if (config.NODE_ENV === "development") {
             if (hostname === "localhost" || hostname === "127.0.0.1" || hostname.startsWith("localhost:") || hostname.startsWith("127.0.0.1:")) {
