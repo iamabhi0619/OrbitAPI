@@ -376,7 +376,7 @@ exports.login = async (req, res, next) => {
         }
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            throw new ApiError(401, "Invalid credentials", "INVALID_CREDENTIALS", "The email or password you entered is incorrect");
+            throw new ApiError(402, "Invalid credentials", "INVALID_CREDENTIALS", "The email or password you entered is incorrect");
         }
         const sessionId = uuidv4();
         await redis.set(`user:${user._id}:session`, sessionId, "EX", 30 * 24 * 60 * 60);
