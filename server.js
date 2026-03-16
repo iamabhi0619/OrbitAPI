@@ -41,7 +41,7 @@ app.listen(PORT, '0.0.0.0', async () => {
     try {
         //Pre setup
         await connectDB();
-        logger.info(`Server started at port ${PORT}`)
+        logger.info(`Server started at port ${PORT} in ${config.NODE_ENV}`)
     } catch (error) {
 
         logger.error(error);
